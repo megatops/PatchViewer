@@ -715,7 +715,9 @@
                 }
 
                 for (var i = lastDel; i < endDel; i++) {
-                    pushLineTo(sideA, lines[i].substr(1), (isModify ? LINE_MOD : LINE_DEL));
+                    if (lines[i].substr(0, 1) == "-") {
+                        pushLineTo(sideA, lines[i].substr(1), (isModify ? LINE_MOD : LINE_DEL));
+                    }
                 }
                 lastDel = -1;
             }
@@ -806,6 +808,12 @@
                     continue;
                 }
 
+                // \ No newline at end of file
+                if (((result = /^\\ ([^\n]*)/.exec(line)) != null)
+                    && (state == ST_IN_DIFF)) {
+                    continue;
+                }
+
                 // @@ -184,3 +184,41 @@ (Optional section title)
                 if ((result = /^@@ \-([0-9]+)[0-9,]* \+([0-9]+)[0-9,]* @@ *([^\n]*)/.exec(line)) != null) {
                     setSubState(0, i);
@@ -882,7 +890,7 @@
 </head>
 
 <body onload = "form_diff.reset()">
-    <h2>Side-by-Side Patch Viewer v0.4</h2>
+    <h2>Side-by-Side Patch Viewer v0.5</h2>
     <form id = "form_diff">
         <div class = "toolbar">
             Paste your diff snippet below then
@@ -906,10 +914,10 @@
 
     <div>
         <ul>
-            <li>Run in Chrome/Firefox/Opera is highly recommended. Internet Explorer might not support all features of this tool.</li>
+            <li>Run in Chrome/Firefox/Opera is highly recommended. Internet Explorer might not support all the features of this tool.</li>
             <li>Use the "Save As..." to save the side-by-side view of current patch.</li>
             <li>Parsing large file might freeze your browser for minutes.</li>
-            <li>For any issues please contact Ding Zhaojie (<a href = "mailto:zhaojie.ding@gmail.com">zhaojie.ding@gmail.com</a>)</li>
+            <li>For any issues please contact Ding Zhaojie (<a href = "mailto:zhaojie_ding@msn.com">zhaojie_ding@msn.com</a>)</li>
         </ul>
     </div>
 </body>

@@ -1,12 +1,12 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
-<html xmlns="http://www.w3.org/1999/xhtml">
+<!doctype html>
+<html lang="en">
 
 <head>
-    <meta content="text/html; charset=UTF-8" http-equiv="content-type" />
+    <meta charset="utf-8">
     <title>Patch Viewer</title>
+    <meta name="viewport" content="width=device-width">
 
-    <style type="text/css">
+    <style>
 
     body, h1, h2, h3, p {
         font-family: sans-serif;
@@ -163,7 +163,7 @@
 
     </style>
 
-    <script type="text/javascript" language="JavaScript">
+    <script type="text/javascript">
 
     function diffRender(diff, node) {
         // Common rendering engine STM states
@@ -171,14 +171,14 @@
               LINE_ADD       = 1, // + block, sideB only
               LINE_DEL       = 2, // - block, sideA only
               LINE_MOD       = 3, // ! block
-              LINE_SPLIT     = 4, // section split, should be start line number
+              LINE_SPLIT     = 4, // section split, contains line range
               LINE_SEC_TITLE = 5; // section title, sideA only
 
         // Line buffers to hold the file parse result
         let sideA = [], sideB = [];
 
         // Add Navigation bar into DOM node.
-        function addNav(node, prefix, name) {
+        function addNav(node, prefix) {
             function newNavLink(href, inner, name) {
                 let link = document.createElement("a");
                 link.setAttribute("href", href);
@@ -202,7 +202,7 @@
             defaultItem.appendChild(document.createTextNode("< Jump to ... >"));
 
             let title = document.createElement("span");
-            title.innerHTML = `<a name=${prefix}TOP></a><b>File List:&nbsp;</b>`;
+            title.innerHTML = `<a id=${prefix}TOP></a><b>File List:&nbsp;</b>`;
 
             let list = document.createElement("select");
             list.setAttribute("onchange", "location.href = this.options[this.selectedIndex].value;");
@@ -244,7 +244,11 @@
 
         // Render a file buffer
         function renderFile(fileName, node) {
-            let sideALn, sideBLn;
+            function LineRange(no, count) {
+                return {no: no, count: count};
+            }
+
+            let rngA = LineRange(1, 0), rngB = LineRange(1, 0);
             let sect_title = null;
 
             // insert file name
@@ -267,7 +271,7 @@
                 function insertRow(tb, codeA, codeB, type) {
 
                     // create a line number table cell
-                    function newLineNumCell(count, type) {
+                    function newLineNumCell(count) {
                         let td = document.createElement("td");
                         let pre = document.createElement("pre");
 
@@ -303,13 +307,18 @@
                             if (isSideB) {
                                 td.setAttribute("class", "diff_basic diff_add");
                             } else {
-                                td.setAttribute("class", "diff_basic diff_del");
+                                td.setAttribute("class", "diff_basic diff_pad");
+                                td.setAttribute("colspan", "2");
                             }
                             break;
 
                         case LINE_DEL:
-                            td.setAttribute("class", "diff_basic diff_pad");
-                            td.setAttribute("colspan", "2");
+                            if (isSideB) {
+                                td.setAttribute("class", "diff_basic diff_pad");
+                                td.setAttribute("colspan", "2");
+                            } else {
+                                td.setAttribute("class", "diff_basic diff_del");
+                            }
                             break;
 
                         case LINE_MOD:
@@ -322,6 +331,7 @@
                             break;
 
                         default:
+                            break;
                         }
 
                         if (text == null) {
@@ -332,51 +342,35 @@
                         return td;
                     }   // newCodeCell()
 
-                    // check if we need to create line number cells in this side
-                    function needLineNum(text, type) {
-                        if ((type === LINE_SPLIT) || (type === LINE_SEC_TITLE)) {
-                            return false;
-                        }
-                        return text != null;
-                    }
-
                     // skip the dummy end mark
                     if ((type === LINE_SPLIT) && (codeA == null) && (codeB == null)) {
                         return;
                     }
 
                     let tr = document.createElement("tr");
-                    let typeA = type, typeB = type;
-
-                    switch (type) {
-                    case LINE_ADD:
-                        typeA = LINE_DEL;
-                        break;
-                    case LINE_DEL:
-                        typeA = LINE_ADD;
-                        break;
-                    default:
-                    }
-
                     tr.setAttribute("class", "code_row");
 
-                    if (needLineNum(codeA, type)) {
-                        tr.appendChild(newLineNumCell(sideALn, typeA));
-                        sideALn++;
-                    }
-                    tr.appendChild(newCodeCell(false, codeA, typeA));
-
-                    if (type !== LINE_SEC_TITLE) {
-                        if (needLineNum(codeB, type)) {
-                            tr.appendChild(newLineNumCell(sideBLn, typeA));
-                            sideBLn++;
+                    function appendLine(isSideB, rng, text) {
+                        if ((type !== LINE_SPLIT) && (type !== LINE_SEC_TITLE) && (text != null)) {
+                            // diff content, print with line number
+                            if (rng.count <= 0) {
+                                return;
+                            }
+                            tr.appendChild(newLineNumCell(rng.no));
+                            rng.no++;
+                            rng.count--;
                         }
-                        tr.appendChild(newCodeCell(true, codeB, typeB));
+                        tr.appendChild(newCodeCell(isSideB, text, type));
                     }
 
+                    appendLine(false, rngA, codeA);
+                    if (type !== LINE_SEC_TITLE) {
+                        appendLine(true, rngB, codeB);
+                    }
                     tb.appendChild(tr);
                 }   // insertRow()
 
+                // the processed lines will be shifted, so always fetch the first line
                 let lineA = sideA[0], lineB = sideB[0];
 
                 // process current work first
@@ -390,17 +384,21 @@
                     }
                     sect_title = null;
 
-                    // Update the line number from the split text
-                    let lnA = parseInt(lineA.text), lnB = parseInt(lineB.text);
+                    // Update the line number and count for current section
+                    function parseRange(text) {
+                        const arr = String(text).split(",").map(Number);
+                        return LineRange(arr[0], (arr.length > 1) ? arr[1] : 0);
+                    }
+                    let newRngA = parseRange(lineA.text), newRngB = parseRange(lineB.text);
 
                     // check if we can convert line number to skipped line
-                    let skipped = lnA - sideALn;
-                    if ((lnA > sideALn) && (skipped === (lnB - sideBLn))) {
+                    const skipped = newRngA.no - rngA.no;
+                    if ((skipped > 0) && (skipped === (newRngB.no - rngB.no))) {
                         let split_text = `${skipped} unchanged line${(skipped === 1) ? "" : "s"} skipped...`;
                         insertRow(tb, split_text, split_text, parseState);
                     } else {
-                        if ((lnA <= 1) || (lnB <= 1)) {
-                            // Don't print the split
+                        if ((newRngA.no <= 1) || (newRngB.no <= 1)) {
+                            // first line, don't print the split
                             if (!hasTitle) {
                                 tb.setAttribute("style", "border-top-style: solid");
                             }
@@ -409,8 +407,8 @@
                         }
                     }
 
-                    sideALn = lnA;
-                    sideBLn = lnB;
+                    rngA = newRngA;
+                    rngB = newRngB;
 
                     sideA.shift();
                     sideB.shift();
@@ -485,6 +483,7 @@
                     break;
 
                 default:
+                    break;
                 }
             }   // processState()
 
@@ -532,8 +531,6 @@
                 return;
             }
 
-            sideALn = 1;
-            sideBLn = 1;
             let tb = document.createElement("table");
             while ((sideA.length > 0) || (sideB.length > 0)) {
                 processState(tb, detectNextState());
@@ -546,10 +543,10 @@
 
         // Push a line to file buffer
         function pushLineTo(side, lineText, lineState) {
-            let lineObj = {};
-            lineObj.text = lineText;
-            lineObj.state = lineState;
-            side.push(lineObj);
+            side.push({
+                text: lineText,
+                state: lineState,
+            });
         }
 
         // Check if file buffer is empty
@@ -582,6 +579,7 @@
                     pushLineTo(sideB, lineText, lineState);
                     break;
                 default:
+                    break;
                 }
             }
 
@@ -614,15 +612,15 @@
                     continue;
                 }
 
-                // *** 5,20 **** (sideA line number)
-                if ((result = /^\*{3} ([0-9]+)[0-9,]* \*{3}/.exec(line)) != null) {
+                // *** 5,20 **** (sideA line number,count)
+                if ((result = /^\*{3} ([0-9]+[0-9,]*) \*{3}/.exec(line)) != null) {
                     state = ST_IN_ORG;
                     pushLine(result[1], LINE_SPLIT);
                     continue;
                 }
 
-                // --- 11,20 ---- (sideB line number)
-                if ((result = /^-{3} ([0-9]+)[0-9,]* -{3}/.exec(line)) != null) {
+                // --- 11,20 ---- (sideB line number,count)
+                if ((result = /^-{3} ([0-9]+[0-9,]*) -{3}/.exec(line)) != null) {
                     state = ST_IN_NEW;
                     pushLine(result[1], LINE_SPLIT);
                     continue;
@@ -801,18 +799,18 @@
                 }
 
                 // @@ -184,3 +184,41 @@ (Optional section title)
-                if ((result = /^@@ -([0-9]+)[0-9,]* \+([0-9]+)[0-9,]* @@ *([^\n]*)/.exec(line)) != null) {
+                if ((result = /^@@ -(?<lnA>[0-9]+[0-9,]*) \+(?<lnB>[0-9]+[0-9,]*) @@ *(?<sect>[^\n]*)/.exec(line)) != null) {
                     setSubState(0, i);
                     state = ST_IN_DIFF;
 
                     // parse section title
-                    if (result[3] !== "") {
-                        pushLineTo(sideA, result[3], LINE_SEC_TITLE);
+                    if (result.groups.sect !== "") {
+                        pushLineTo(sideA, result.groups.sect, LINE_SEC_TITLE);
                     }
 
-                    // parse line number
-                    pushLineTo(sideA, result[1], LINE_SPLIT);
-                    pushLineTo(sideB, result[2], LINE_SPLIT);
+                    // parse line number,count
+                    pushLineTo(sideA, result.groups.lnA, LINE_SPLIT);
+                    pushLineTo(sideB, result.groups.lnB, LINE_SPLIT);
                     continue;
                 }
 
@@ -867,7 +865,7 @@
         let file = files[0];
         let reader = new FileReader();
         reader.readAsText(file);
-        reader.onload = function(e) {
+        reader.onload = function() {
             diffRender(this.result, node);
         }
     }
@@ -876,7 +874,7 @@
 </head>
 
 <body onload = "form_diff.reset()">
-    <h2>Side-by-Side Patch Viewer v0.5</h2>
+    <h2>Side-by-Side Patch Viewer v0.6</h2>
     <form id = "form_diff">
         <div class = "toolbar">
             Paste your diff snippet below then
@@ -901,7 +899,6 @@
     <div>
         <ul>
             <li>Use the "Save As..." to save the side-by-side view of current patch.</li>
-            <li>Parsing large file might freeze your browser for minutes.</li>
             <li>For any issues please contact Ding Zhaojie (<a href = "mailto:zhaojie_ding@msn.com">zhaojie_ding@msn.com</a>)</li>
         </ul>
     </div>

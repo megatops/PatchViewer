@@ -23,17 +23,19 @@ Screenshot:
 
 **v0.4**
 
-- Open source, bug fixes.
+- Support file list and file navigator;
+- Open source.
 
 **v0.3**
 
-- Add file list and file navigator.
+- Bug fixes;
+- First public release.
 
 **v0.2**
 
-- Support unified diff;
-- First public release.
+- Support unified diff.
 
 **v0.1**
 
 - Initial release, support context diff.
+

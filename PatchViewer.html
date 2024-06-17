@@ -395,7 +395,7 @@
                     // Update the line number and count for current section
                     function parseRange(text) {
                         const arr = String(text).split(",").map(Number);
-                        return LineRange(arr[0], (arr.length > 1) ? arr[1] : 0);
+                        return LineRange(arr[0], (arr.length > 1) ? arr[1] : 1);
                     }
                     let newRngA = parseRange(lineA.text), newRngB = parseRange(lineB.text);
 
@@ -872,7 +872,7 @@
 </head>
 
 <body onload = "form_diff.reset()">
-    <h2>Side-by-Side Patch Viewer v0.6</h2>
+    <h2>Side-by-Side Patch Viewer v0.6.1</h2>
     <form id = "form_diff">
         <div class = "toolbar">
             Paste your diff snippet below then

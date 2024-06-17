@@ -12,6 +12,10 @@ Screenshot:
 
 ## Release History
 
+**v0.6.1**
+
+- Fixed a regression bug when parsing diff with only 1 line changed.
+
 **v0.6**
 
 - Better support for `git format-patch` patches.

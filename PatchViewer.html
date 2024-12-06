@@ -23,6 +23,13 @@
     td {
         padding: 0;
         margin: 0;
+        /* Default: prevent selection */
+        user-select: none;
+    }
+
+    .selectable {
+        /* Allow selection for the target column */
+        user-select: text;
     }
 
     textarea {
@@ -901,6 +908,85 @@
             <li>For any issues please contact Ding Zhaojie (<a href = "mailto:zhaojie_ding@msn.com">zhaojie_ding@msn.com</a>).</li>
         </ul>
     </div>
+
+    <script>
+    document.addEventListener("DOMContentLoaded", () => {
+        // https://typeofnan.dev/how-to-bind-event-listeners-on-dynamically-created-elements-in-javascript/
+        //  Use event bubbling to alert dynamically added elements,
+        //  i.e. bind the event listener to the static parent element
+        //  and alert only child elements with a specific class entry.
+
+        const diffResult = document.getElementById("diffResult");
+        diffResult.addEventListener("mousedown", (e) => {
+
+            // Only alert for elements that have an result_table class
+            if (e.target.classList.contains('result_table')) {
+              alert(e.target.innerHTML);
+            }
+
+            const cell = e.target.closest("td, th");
+            // Ensure click is inside the table
+            if (!cell || !diffResult.contains(cell)) return;
+
+            const columnIndex = getColumnIndex(cell);
+
+            // Make only the clicked column selectable
+            diffResult.querySelectorAll("td, th").forEach(cell => {
+                cell.classList.remove("selectable");
+            });
+            diffResult.querySelectorAll(`tr`).forEach(row => {
+                const targetCell = getCellByIndex(row, columnIndex);
+                if (targetCell) targetCell.classList.add("selectable");
+            });
+        });
+
+        function getColumnIndex(cell) {
+            // Option 1: Get the column index without considering colspan
+            // return cell.cellIndex;
+
+            // Option 2: Get the column index considering colspan
+            const row = cell.parentNode;
+            let columnIndex = 0;
+
+            for (const sibling of row.children) {
+                if (sibling === cell) break;
+                const colspan = parseInt(
+                    // Use 1 as default value
+                    sibling.getAttribute("colspan") || 1,
+                    // Use base 10 for integer conversion
+                    10
+                );
+                columnIndex += colspan;
+            }
+            return columnIndex;
+        }
+
+        function getCellByIndex(row, targetIndex) {
+            // Option 1: Get the column index without considering colspan
+            // return row.cells[targetIndex];
+
+            // Option 2: Get the column index considering colspan
+            let columnIndex = 0;
+
+            for (const cell of row.children) {
+                const colspan = parseInt(
+                    // Use 1 as default value
+                    cell.getAttribute("colspan") || 1,
+                    // Use base 10 for integer conversion
+                    10
+                );
+                if (columnIndex <= targetIndex && targetIndex < columnIndex + colspan) {
+                    return cell;
+                }
+                columnIndex += colspan;
+            }
+
+            return null;
+        }
+
+    });
+    </script>
+
 </body>
 
 </html>

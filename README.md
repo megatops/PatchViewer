@@ -12,6 +12,10 @@ Screenshot:
 
 ## Release History
 
+**v0.7**
+
+- Support multi-line selection (by Sebastian).
+
 **v0.6.1**
 
 - Fixed a regression bug when parsing diff with only 1 line changed.

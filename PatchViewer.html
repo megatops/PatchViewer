@@ -169,7 +169,7 @@
 
     </style>
 
-    <script type="text/javascript">
+    <script>
 
     function diffRender(diff, node) {
         // Common rendering engine STM states
@@ -708,8 +708,8 @@
                 }
 
                 for (let i = lastDel; i < endDel; i++) {
-                    if (lines[i].substr(0, 1) === "-") {
-                        pushLineTo(sideA, lines[i].substr(1), (isModify ? LineState.MOD : LineState.DEL));
+                    if (lines[i].charAt(0) === "-") {
+                        pushLineTo(sideA, lines[i].substring(1), (isModify ? LineState.MOD : LineState.DEL));
                     }
                 }
                 lastDel = -1;
@@ -879,7 +879,7 @@
 </head>
 
 <body onload = "form_diff.reset()">
-    <h2>Side-by-Side Patch Viewer v0.6.1</h2>
+    <h2>Side-by-Side Patch Viewer v0.7</h2>
     <form id = "form_diff">
         <div class = "toolbar">
             Paste your diff snippet below then
@@ -910,107 +910,98 @@
     </div>
 
     <script>
-    document.addEventListener("DOMContentLoaded", () => {
-        // https://typeofnan.dev/how-to-bind-event-listeners-on-dynamically-created-elements-in-javascript/
-        //  Use event bubbling to alert dynamically added elements,
-        //  i.e. bind the event listener to the static parent element
-        //  and alert only child elements with a specific class entry.
 
+    function getColSpan(cell) {
+        // Use 1 as default value
+        return parseInt(cell.getAttribute("colspan") || 1, 10);
+    }
+
+    // Get the column index considering colspan
+    function getColumnIndex(cell) {
+        let columnIndex = 0;
+        for (const sibling of cell.parentNode.children) {
+            if (sibling === cell) {
+                break;
+            }
+            columnIndex += getColSpan(sibling);
+        }
+        return columnIndex;
+    }
+
+    // Get the column index considering colspan
+    function getCellByIndex(row, targetIndex) {
+        let columnIndex = 0;
+        for (const cell of row.children) {
+            const colspan = getColSpan(cell);
+            if (columnIndex <= targetIndex && targetIndex < columnIndex + colspan) {
+                return cell;
+            }
+            columnIndex += colspan;
+        }
+        return null;
+    }
+
+    // https://typeofnan.dev/how-to-bind-event-listeners-on-dynamically-created-elements-in-javascript/
+    // Use event bubbling to alert dynamically added elements,
+    // i.e. bind the event listener to the static parent element.
+    document.addEventListener("DOMContentLoaded", () => {
         const diffResult = document.getElementById("diffResult");
         diffResult.addEventListener("mousedown", (e) => {
+            const cell = e.target.closest("td");
 
-            // Only alert for elements that have an result_table class
-            if (e.target.classList.contains('result_table')) {
-              alert(e.target.innerHTML);
-            }
-
-            const cell = e.target.closest("td, th");
             // Ensure click is inside the table
-            if (!cell || !diffResult.contains(cell)) return;
-
-            const columnIndex = getColumnIndex(cell);
+            if (!cell || !diffResult.contains(cell)) {
+                return;
+            }
 
             // Make only the clicked column selectable
-            diffResult.querySelectorAll("td, th").forEach(cell => {
+            diffResult.querySelectorAll("td").forEach(cell => {
                 cell.classList.remove("selectable");
             });
-            diffResult.querySelectorAll(`tr`).forEach(row => {
+
+            const columnIndex = getColumnIndex(cell);
+            diffResult.querySelectorAll("tr").forEach(row => {
                 const targetCell = getCellByIndex(row, columnIndex);
-                if (targetCell) targetCell.classList.add("selectable");
+                if (targetCell && !targetCell.classList.contains('diff_pad')) {
+                    targetCell.classList.add("selectable");
+                }
             });
         });
-
-        function getColumnIndex(cell) {
-            // Option 1: Get the column index without considering colspan
-            // return cell.cellIndex;
-
-            // Option 2: Get the column index considering colspan
-            const row = cell.parentNode;
-            let columnIndex = 0;
-
-            for (const sibling of row.children) {
-                if (sibling === cell) break;
-                const colspan = parseInt(
-                    // Use 1 as default value
-                    sibling.getAttribute("colspan") || 1,
-                    // Use base 10 for integer conversion
-                    10
-                );
-                columnIndex += colspan;
-            }
-            return columnIndex;
-        }
-
-        function getCellByIndex(row, targetIndex) {
-            // Option 1: Get the column index without considering colspan
-            // return row.cells[targetIndex];
-
-            // Option 2: Get the column index considering colspan
-            let columnIndex = 0;
-
-            for (const cell of row.children) {
-                const colspan = parseInt(
-                    // Use 1 as default value
-                    cell.getAttribute("colspan") || 1,
-                    // Use base 10 for integer conversion
-                    10
-                );
-                if (columnIndex <= targetIndex && targetIndex < columnIndex + colspan) {
-                    return cell;
-                }
-                columnIndex += colspan;
-            }
-
-            return null;
-        }
-
     });
+
+    document.addEventListener("copy", (e) => {
+        const selection = window.getSelection();
+        if (selection.rangeCount === 0) {
+            return;
+        }
+
+        const diffResult = document.getElementById("diffResult");
+        const selectableCells = Array.from(diffResult.querySelectorAll("td.selectable"));
+
+        let selectedCells = [];
+        for (let i = 0; i < selection.rangeCount; i++) {
+            const range = selection.getRangeAt(i);
+            selectedCells = selectedCells.concat(
+                selectableCells.filter(cell => {
+                    return range.intersectsNode(cell);
+                })
+            );
+        }
+
+        // only need to handle multi-line selection
+        if (selectedCells.length <= 1) {
+            return;
+        }
+
+        // Override the clipboard content
+        e.clipboardData.setData("text/plain", selectedCells.map(cell => {
+            const preElement = cell.querySelector("pre");
+            return preElement && preElement.textContent + "\n";
+        }).join(""));
+        e.preventDefault();
+    });
+
     </script>
-
-    <script>
-        document.addEventListener("copy", (e) => {
-            const selection = window.getSelection();
-            if (!selection.rangeCount) return;
-
-            const range = selection.getRangeAt(0);
-            const selectableCells = Array.from(range.commonAncestorContainer.querySelectorAll("td.selectable, th.selectable"));
-            const selectedCells = selectableCells.filter(cell => range.intersectsNode(cell));
-
-            if (selectedCells.length > 0) {
-                const copiedText = selectedCells.map(
-                    cell => {
-                        const preElement = cell.querySelector("pre");
-                        return preElement && preElement.textContent + "\n";
-                    }
-                ).join("");
-
-                // Override the clipboard content
-                e.clipboardData.setData("text/plain", copiedText);
-                e.preventDefault();
-            }
-        });
-    </script>
-
 </body>
 
 </html>

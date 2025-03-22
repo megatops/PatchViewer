@@ -964,7 +964,7 @@
             const columnIndex = getColumnIndex(cell);
             diffResult.querySelectorAll("tr").forEach(row => {
                 const targetCell = getCellByIndex(row, columnIndex);
-                if (targetCell) {
+                if (targetCell && !targetCell.classList.contains('diff_pad')) {
                     targetCell.classList.add("selectable");
                 }
             });

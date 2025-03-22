@@ -988,17 +988,16 @@
             );
         }
 
-        if (selectedCells.length === 0) {
+        // only need to handle multi-line selection
+        if (selectedCells.length <= 1) {
             return;
         }
 
-        const copiedText = selectedCells.map(cell => {
+        // Override the clipboard content
+        e.clipboardData.setData("text/plain", selectedCells.map(cell => {
             const preElement = cell.querySelector("pre");
             return preElement && preElement.textContent + "\n";
-        }).join("");
-
-        // Override the clipboard content
-        e.clipboardData.setData("text/plain", copiedText);
+        }).join(""));
         e.preventDefault();
     });
 

@@ -8,12 +8,42 @@
 
     <style>
 
-    body, h1, h2, h3, p {
+    :root {
+        /* body */
+        --fg-normal: #30303A;
+        --bg-normal: #FFFFFF;
+
+        /* diff color */
+        --fg-context: #4D4D4D;
+        --bg-sector: #DDDDCC;
+        --bg-add: #D0FFD0;
+        --bg-del: #FFD0D0;
+        --bg-mod: #D0D0FF;
+        --bg-pad: #EEEEEE;
+
+        /* gutter */
+        --fg-gutter: #999999;
+        --bg-gutter: #F7F7F7;
+
+        /* misc */
+        --bg-bar: #EEEEEE;
+        --border: #BFBFBF;
+    }
+
+    @media (prefers-color-scheme: dark) {
+        html {
+            filter: invert(95%) hue-rotate(180deg);
+        }
+    }
+
+    html {
+        background-color: var(--bg-normal);
+        color: var(--fg-normal);
         font-family: sans-serif;
     }
 
     pre {
-        white-space:pre-wrap;
+        white-space: pre-wrap;
         word-break: break-all;
         word-wrap: break-word;
         padding: 0;
@@ -23,12 +53,14 @@
     td {
         padding: 0;
         margin: 0;
+
         /* Default: prevent selection */
+        -webkit-user-select: none;
         user-select: none;
     }
 
     .selectable {
-        /* Allow selection for the target column */
+        -webkit-user-select: text;
         user-select: text;
     }
 
@@ -45,7 +77,8 @@
         padding: 0;
         margin: 0;
         border-spacing: 0;
-        border: 0.1em none #BFBFBF;
+        border: 0.1em none;
+        border-color: var(--border);
         border-bottom-style: solid;
         border-left-style: solid;
         color: black;
@@ -60,12 +93,13 @@
         width: 0;
         border-right-style: solid;
         border-right-width: 0.1em;
-        border-color: #F0F0F0;
-        background-color: #F7F7F7;
-        color: #999999;
+        border-color: var(--bg-pad);
+        background-color: var(--bg-gutter);
+        color: var(--fg-gutter);
         text-align: right;
         padding-left: 0.2em;
         padding-right: 0.2em;
+        -webkit-user-select: none;
         user-select: none;
     }
 
@@ -79,29 +113,29 @@
         width: 50%;
         border-right-style: solid;
         border-right-width: 0.1em;
-        border-color: #BFBFBF;
+        border-color: var(--border);
     }
 
     .diff_context {
-        background-color: white;
-        color: #4D4D4D;
+        background-color: var(--bg-normal);
+        color: var(--fg-context);
     }
 
     .diff_add {
-        background-color: #C0FFC0;
+        background-color: var(--bg-add);
     }
 
     .diff_mod {
-        background-color: #FFFFB0;
+        background-color: var(--bg-mod);
     }
 
     .diff_del {
-        background-color: #FFD0D0;
-        color: #4D4D4D;
+        background-color: var(--bg-del);
+        color: var(--fg-context);
     }
 
     .diff_pad {
-        background-color: #F0F0F0;
+        background-color: var(--bg-pad);
     }
 
     .diff_info {
@@ -109,8 +143,8 @@
     }
 
     .diff_split {
-        background-color: #EEEEEE;
-        color: #4D4D4D;
+        background-color: var(--bg-pad);
+        color: var(--fg-context);
         text-align: center;
         border-top-style: solid;
         border-top-width: 0.1em;
@@ -120,15 +154,15 @@
 
     .diff_sec_title {
         width: 100%;
-        background-color: #DDDDCC;
-        color: #4D4D4D;
+        background-color: var(--bg-sector);
+        color: var(--fg-context);
         font-weight: bold;
         border-top-style: solid;
         border-top-width: 0.1em;
     }
 
     .toolbar {
-        background-color: #EEEEEE;
+        background-color: var(--bg-bar);
         padding: 0.6em;
         border-radius: 0.6em;
     }
@@ -145,18 +179,18 @@
 
     .nav_link {
         text-decoration: none;
-        color: black;
+        color: var(--fg-normal);
         font-family: monospace;
         padding-left: 0.3em;
         padding-right: 0.3em;
     }
 
     .nav_link_bar {
-        background: #EEEEEE;
+        background-color: var(--bg-bar);
         border-radius: 0.4em;
         border-style: solid;
         border-width: 0.1em;
-        border-color: #BFBFBF;
+        border-color: var(--border);
     }
 
     .nav_filelist {
@@ -981,11 +1015,7 @@
         let selectedCells = [];
         for (let i = 0; i < selection.rangeCount; i++) {
             const range = selection.getRangeAt(i);
-            selectedCells = selectedCells.concat(
-                selectableCells.filter(cell => {
-                    return range.intersectsNode(cell);
-                })
-            );
+            selectedCells = selectedCells.concat(selectableCells.filter(cell => range.intersectsNode(cell)));
         }
 
         // only need to handle multi-line selection

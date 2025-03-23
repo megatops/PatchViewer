@@ -15,6 +15,7 @@ Screenshot:
 **v0.7**
 
 - Support multi-line selection (by Sebastian).
+- Support dark mode (follow system theme).
 
 **v0.6.1**
 

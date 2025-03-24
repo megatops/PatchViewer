@@ -4,7 +4,7 @@ Single file, browser based side-by-side patch viewer.
 
 Try it online: https://megatops.github.io/PatchViewer/
 
-Just save the `PatchViewer.html` to use it offline. No any other dependencies or internet access needed.
+Just save the `PatchViewer.html` to use it offline. No any other dependencies or network access are needed.
 
 Screenshot:
 

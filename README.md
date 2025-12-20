@@ -1,6 +1,6 @@
 # Patch Viewer
 
-[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/megatops/PatchViewer)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/megatops/PatchViewer) ![GitHub License](https://img.shields.io/github/license/megatops/PatchViewer?logo=license) ![GitHub top language](https://img.shields.io/github/languages/top/megatops/PatchViewer) ![GitHub contributors](https://img.shields.io/github/contributors-anon/megatops/PatchViewer) ![GitHub forks](https://img.shields.io/github/forks/megatops/PatchViewer) ![GitHub Repo stars](https://img.shields.io/github/stars/megatops/PatchViewer)
 
 Single file, browser based side-by-side patch viewer.
 

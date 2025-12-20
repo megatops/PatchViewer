@@ -1,5 +1,7 @@
 # Patch Viewer
 
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/megatops/PatchViewer)
+
 Single file, browser based side-by-side patch viewer.
 
 Try it online: https://megatops.github.io/PatchViewer/

@@ -14,6 +14,12 @@ Screenshot:
 
 ## Release History
 
+**v0.8**
+
+- Add save button in the viewer (by Dror Harari)
+- Hide the patch text entry dialog to get more screen space - revealed again by pressing "Load a new patch" button (by Dror Harari)
+- Add drag&drop support (by Dror Harari)
+
 **v0.7**
 
 - Support multi-line selection (by Sebastian).

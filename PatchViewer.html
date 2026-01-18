@@ -292,6 +292,7 @@
             list.removeChild(defaultItem);
             list.insertBefore(defaultItem, list.firstChild);
             node.insertBefore(bar, node.firstChild);
+            enableLoadingNewPatch(fileNames.length < 1)
         }   // buildFileNavigator
 
         // create a line number table cell
@@ -913,22 +914,28 @@
 </head>
 
 <body onload = "form_diff.reset()">
-    <h2>Side-by-Side Patch Viewer v0.7</h2>
+    <h2>Side-by-Side Patch Viewer v0.8</h2>
     <form id = "form_diff">
         <div class = "toolbar">
-            Paste your diff snippet below then
-            <button
-                type = "button"
-                onclick = "diffRender(document.getElementById('diffText').value, document.getElementById('diffResult'))">
-                START
-            </button>
-            ; or load from a file:
-            <input
-                id = "diff_file" type = "file" autocomplete = "off"
-                onchange = "loadDiff(document.getElementById('diffResult'))"/>
+            <div id="input_section">
+                Paste your diff snippet below then
+                <button
+                    type = "button"
+                    onclick = "diffRender(document.getElementById('diffText').value, document.getElementById('diffResult'))">
+                    START
+                </button>
+                ; or load from a file:
+                <input
+                    id = "diff_file" type = "file" autocomplete = "off"
+                    onchange = "loadDiff(document.getElementById('diffResult'))"/>
 
-            <div style = "padding-top: 0.3em">
-                <textarea rows = "8" id = "diffText"></textarea>
+                <div style = "padding-top: 0.3em">
+                    <textarea rows = "8" id = "diffText"></textarea>
+                </div>
+            </div>
+            <div id="reload_section" style="display:none; padding: 10px; background-color: #f0f0f0; border-bottom: 1px solid #ccc;">
+                <button type="button" onclick="enableLoadingNewPatch(1)">Load a new patch...</button>
+                <button type="button" onclick="savePatchView()">Save patch view...</button>
             </div>
         </div>
     </form>
@@ -973,6 +980,26 @@
             columnIndex += colspan;
         }
         return null;
+    }
+
+    function enableLoadingNewPatch(enable) {
+        document.getElementById('input_section').style.display = enable ? 'block' : 'none';
+        document.getElementById('reload_section').style.display = enable ? 'none' : 'block';
+        if (enable) {
+            document.getElementById('diffText').value = '';
+            var diffResult = document.getElementById('diffResult');
+            diffResult.textContent = '';
+        }
+    }
+
+    function savePatchView() {
+        var downloadLink = document.createElement('a');
+        var currentPage = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
+        downloadLink.href = 'data:text/html;charset=utf-8,' + encodeURIComponent(currentPage);
+        downloadLink.target = '_blank';
+        downloadLink.download = 'this-patch.html';
+        downloadLink.click();
+        document.body.removeChild(downloadLink);
     }
 
     // https://typeofnan.dev/how-to-bind-event-listeners-on-dynamically-created-elements-in-javascript/
@@ -1031,6 +1058,30 @@
         e.preventDefault();
     });
 
+    document.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        document.body.style.backgroundColor = "#e0e0e0";
+    });
+
+    document.addEventListener("dragleave", (e) => {
+        e.preventDefault();
+        document.body.style.backgroundColor = "";
+    });
+
+    document.addEventListener("drop", (e) => {
+        e.preventDefault();
+        document.body.style.backgroundColor = "";
+
+        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+            let file = e.dataTransfer.files[0];
+            let reader = new FileReader();
+            reader.readAsText(file);
+            reader.onload = function() {
+                diffRender(this.result, document.getElementById('diffResult'));
+                enableLoadingNewPatch(0); 
+            }
+        }
+    });
     </script>
 </body>
 

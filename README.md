@@ -1,16 +1,24 @@
 # Patch Viewer
 
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/megatops/PatchViewer) ![GitHub License](https://img.shields.io/github/license/megatops/PatchViewer?logo=license) ![GitHub top language](https://img.shields.io/github/languages/top/megatops/PatchViewer) ![GitHub contributors](https://img.shields.io/github/contributors-anon/megatops/PatchViewer) ![GitHub forks](https://img.shields.io/github/forks/megatops/PatchViewer) ![GitHub Repo stars](https://img.shields.io/github/stars/megatops/PatchViewer)
+
 Single file, browser based side-by-side patch viewer.
 
 Try it online: https://megatops.github.io/PatchViewer/
 
-Just save the `PatchViewer.html` to use it offline. No any other dependencies or internet access needed.
+Just save the `PatchViewer.html` to use it offline. No any other dependencies or network access are needed.
 
 Screenshot:
 
 ![image](https://github.com/megatops/PatchViewer/assets/13481083/7154076b-4561-45ff-a286-4323576d85d8)
 
 ## Release History
+
+**v0.8**
+
+- Add save button in the viewer (by Dror Harari)
+- Hide the patch text entry dialog to get more screen space - revealed again by pressing "Load a new patch" button (by Dror Harari)
+- Add drag&drop support (by Dror Harari)
 
 **v0.7**
 

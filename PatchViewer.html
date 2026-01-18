@@ -1058,6 +1058,30 @@
         e.preventDefault();
     });
 
+    document.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        document.body.style.backgroundColor = "#e0e0e0";
+    });
+
+    document.addEventListener("dragleave", (e) => {
+        e.preventDefault();
+        document.body.style.backgroundColor = "";
+    });
+
+    document.addEventListener("drop", (e) => {
+        e.preventDefault();
+        document.body.style.backgroundColor = "";
+
+        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+            let file = e.dataTransfer.files[0];
+            let reader = new FileReader();
+            reader.readAsText(file);
+            reader.onload = function() {
+                diffRender(this.result, document.getElementById('diffResult'));
+                enableLoadingNewPatch(0); 
+            }
+        }
+    });
     </script>
 </body>
 

@@ -903,6 +903,7 @@
         }
 
         let file = files[0];
+        patchFileName = file.name;
         let reader = new FileReader();
         reader.readAsText(file);
         reader.onload = function() {
@@ -914,7 +915,7 @@
 </head>
 
 <body onload = "form_diff.reset()">
-    <h2>Side-by-Side Patch Viewer v0.8</h2>
+    <h2>Side-by-Side Patch Viewer v0.8.1</h2>
     <form id = "form_diff">
         <div class = "toolbar">
             <div id="input_section">
@@ -986,18 +987,21 @@
         document.getElementById('input_section').style.display = enable ? 'block' : 'none';
         document.getElementById('reload_section').style.display = enable ? 'none' : 'block';
         if (enable) {
+            patchFileName = '';
             document.getElementById('diffText').value = '';
             var diffResult = document.getElementById('diffResult');
             diffResult.textContent = '';
         }
     }
 
+    let patchFileName = '';
+
     function savePatchView() {
         var downloadLink = document.createElement('a');
         var currentPage = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
         downloadLink.href = 'data:text/html;charset=utf-8,' + encodeURIComponent(currentPage);
         downloadLink.target = '_blank';
-        downloadLink.download = 'this-patch.html';
+        downloadLink.download = patchFileName ? patchFileName + '.html' : 'this-patch.html';
         downloadLink.click();
         document.body.removeChild(downloadLink);
     }
@@ -1074,6 +1078,7 @@
 
         if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
             let file = e.dataTransfer.files[0];
+            patchFileName = file.name;
             let reader = new FileReader();
             reader.readAsText(file);
             reader.onload = function() {

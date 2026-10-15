@@ -14,6 +14,10 @@ Screenshot:
 
 ## Release History
 
+**v0.8.1**
+
+- Name the saved patch view after the loaded patch file (by Wxh16144)
+
 **v0.8**
 
 - Add save button in the viewer (by Dror Harari)
